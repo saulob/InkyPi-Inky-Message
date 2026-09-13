@@ -1,0 +1,89 @@
+{% extends "plugin.html" %}
+
+{% block content %}
+<main
+    class="inky-message-shell"
+    style="
+        --message-top-margin: {{ plugin_settings.messageTopMargin or 0 }}px;
+        --message-bottom-margin: {{ plugin_settings.messageBottomMargin or 0 }}px;
+        --message-left-margin: {{ plugin_settings.messageLeftMargin or 0 }}px;
+        --message-right-margin: {{ plugin_settings.messageRightMargin or 0 }}px;
+        {% if bubble_style %}
+        --inky-message-bubble-color: {{ bubble_color }};
+        {% endif %}
+    "
+>
+    <div
+        class="inky-message-block{% if bubble_style %} message-bubble-layout{% endif %}{% if vertical_orientation %} is-vertical{% endif %}"
+        style="--base-font-size: {{ base_font_size }}px;"
+    >
+        {% if show_timestamp %}
+        <div class="inky-message-timestamp">{{ timestamp }}</div>
+        {% endif %}
+        {% if bubble_style %}
+        <div class="inky-message-bubble">
+            <div class="inky-message-text">{{ message_html | safe }}</div>
+            <span class="inky-message-bubble-tail" aria-hidden="true"></span>
+        </div>
+        {% else %}
+        <div class="inky-message-text">{{ message_html | safe }}</div>
+        {% endif %}
+    </div>
+</main>
+
+<script>
+    (function () {
+        const shell = document.querySelector('.inky-message-shell');
+        const block = document.querySelector('.inky-message-block');
+        if (!shell || !block) return;
+
+        const baseScale = 1;
+        const minimumScale = 0.01;
+
+        function availableSize() {
+            const style = window.getComputedStyle(shell);
+            return {
+                width: shell.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight),
+                height: shell.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)
+            };
+        }
+
+        function fits() {
+            const available = availableSize();
+            const bounds = block.getBoundingClientRect();
+            return block.scrollWidth <= available.width + 1
+                && block.scrollHeight <= available.height + 1
+                && bounds.height <= available.height + 1;
+        }
+
+        function setScale(scale) {
+            block.style.setProperty('--fit-scale', scale);
+        }
+
+        function fitMessage() {
+            setScale(baseScale);
+            if (fits()) return;
+
+            let low = minimumScale;
+            let high = baseScale;
+            for (let step = 0; step < 24; step += 1) {
+                const middle = (low + high) / 2;
+                setScale(middle);
+                if (fits()) {
+                    low = middle;
+                } else {
+                    high = middle;
+                }
+            }
+            setScale(low);
+        }
+
+        fitMessage();
+        window.addEventListener('load', fitMessage, { once: true });
+        window.addEventListener('resize', fitMessage);
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(fitMessage);
+        }
+    }());
+</script>
+{% endblock %}
