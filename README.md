@@ -147,3 +147,9 @@ All text formatting features remain available
 - Emoji rendering depends on the fonts available on the system and is not currently an official feature
 
 ## Screenshots
+
+- Long Message Bubble example
+- Short Message Bubble example
+- Inky Message settings screen
+
+<p align="center"> <img src="screenshots/example1.png" width="45%" /> <img src="screenshots/example2.png" width="45%" /> <img src="screenshots/settings.png" width="45%" /> </p>
